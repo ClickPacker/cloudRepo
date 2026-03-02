@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: cloudRepo
+  security:
+    user:
+      name: user
+      password: 1234
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cloud_repo
+    username: postgres
+    password: 1627
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: update
+server:
+  servlet:
+    context-path: /api
