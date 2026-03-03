@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.nikita.cloudrepo.exception.UserNotFoundException;
 import ru.nikita.cloudrepo.repository.UserRepository;
 import ru.nikita.cloudrepo.repository.entity.User;
-import ru.nikita.cloudrepo.security.AuthUserDetails;
+import ru.nikita.cloudrepo.config.security.AuthUserDetails;
 
 
 @Service

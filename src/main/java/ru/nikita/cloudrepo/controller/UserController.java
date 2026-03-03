@@ -18,6 +18,4 @@ public class UserController {
                 .status(200)
                 .body(responseBody);
     }
-
-
 }

@@ -28,17 +28,17 @@ public class AuthController {
         return "register";
     }
 
+    @GetMapping("sign-in")
+    private String signInHandler() {
+        return "login";
+    }
+
     @PostMapping("process-sign-up")
     private ResponseEntity<UserResponseDto> processSignUpHandler(@ModelAttribute("userRequestDto") UserRequestDto request) {
         UserResponseDto responseDto = authService.signUp(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(responseDto);
-    }
-
-    @GetMapping("sign-in")
-    private String signInHandler() {
-        return "login";
     }
 
     @PostMapping("sign-out")

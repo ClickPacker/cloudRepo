@@ -1,4 +1,4 @@
-package ru.nikita.cloudrepo.security;
+package ru.nikita.cloudrepo.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +40,6 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/auth/**",
                                 "/home",
-                                "/login",
                                 "/css/**"
                         ).permitAll()
                         .requestMatchers("/user/delete", "/user/update").hasRole("ADMIN")

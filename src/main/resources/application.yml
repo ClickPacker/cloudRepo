@@ -14,6 +14,16 @@ spring:
     database: postgresql
     hibernate:
       ddl-auto: update
+  data:
+    redis:
+      host: localhost
+      port: 6380
+  session:
+    store-type: redis
+    timeout: 3000
+    redis:
+      namespace: spring:session
+      flush-mode: on_save
 server:
   servlet:
     context-path: /api

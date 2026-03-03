@@ -26,6 +26,7 @@ import java.util.UUID;
 
 public class AuthService {
     private final AuthenticationManager authenticationManager;
+    private final CloudRepositoryService cloudRepositoryService;
     private final UserRepository userRepository;
     private final MappingService mappingService;
     private final PasswordEncoder encoder;
@@ -36,7 +37,12 @@ public class AuthService {
                 userRequestDto.getUsername(),
                 encoder.encode(userRequestDto.getPassword()),
                 Role.ROLE_USER);
-        userRepository.save(user);
+//        userRepository.save(user);
+//        try {
+//            cloudRepositoryService.createBucket(userRequestDto.getUsername());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         return mappingService.toResponseDto(user);
     }
 
