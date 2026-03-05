@@ -292,6 +292,7 @@ public class StorageService {
                 List<Item> objects = listObjects(bucketName, basePrefix, true);
                 Set<String> addedEntries = new HashSet<>();
 
+
                 if (!rootFolder.isBlank()) {
                     writeDirectoryEntry(zos, rootFolder);
                     addedEntries.add(rootFolder + "/");
