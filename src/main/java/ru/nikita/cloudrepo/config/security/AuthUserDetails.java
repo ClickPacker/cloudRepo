@@ -22,6 +22,10 @@ public class AuthUserDetails implements UserDetails, Serializable {
         return List.of(new SimpleGrantedAuthority(user.getRole().toString()));
     }
 
+    public Long getId() {
+        return user.getId();
+    }
+
     @Override
     public @Nullable String getPassword() {
         return user.getPassword();

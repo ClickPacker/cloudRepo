@@ -14,8 +14,6 @@ import org.springframework.security.config.annotation.web.configurers.CsrfConfig
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import ru.nikita.cloudrepo.service.AuthUserDetailsService;
 
 @Configuration
@@ -36,13 +34,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                 auths -> auths
                         .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
                                 "/auth/**",
                                 "/home",
-                                "/css/**"
+                                "/css/**",
+                                "/js/**"
                         ).permitAll()
-                        .requestMatchers("/user/delete", "/user/update").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).hasRole("ROLE_ADMIN")
                         .anyRequest().authenticated()
         ).formLogin(form -> form
                         .loginPage("/auth/sign-in").permitAll()
@@ -54,7 +54,11 @@ public class SecurityConfig {
                         .logoutUrl("/auth/sign-out")
                         .logoutSuccessUrl("/auth/sign-in")
         ).exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"message\":\"Unauthorized\"}");
+                        })
         ).build();
     }
 
@@ -65,10 +69,8 @@ public class SecurityConfig {
         return provider;
     }
 
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
 }

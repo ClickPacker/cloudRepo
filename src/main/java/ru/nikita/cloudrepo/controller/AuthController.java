@@ -1,8 +1,6 @@
 package ru.nikita.cloudrepo.controller;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,23 +16,22 @@ import java.util.Map;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("auth")
-@Tag(name = "Аутентификация")
 @Slf4j
 public class AuthController {
     private final AuthService authService;
 
     @GetMapping("sign-up")
     private String signUpHandler() {
-        return "register";
+        return "auth/register";
     }
 
     @GetMapping("sign-in")
     private String signInHandler() {
-        return "login";
+        return "auth/login";
     }
 
     @PostMapping("process-sign-up")
-    private ResponseEntity<UserResponseDto> processSignUpHandler(@ModelAttribute("userRequestDto") UserRequestDto request) {
+    private ResponseEntity<UserResponseDto> processSignUpHandler(@Valid @ModelAttribute("userRequestDto") UserRequestDto request) {
         UserResponseDto responseDto = authService.signUp(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -47,5 +44,4 @@ public class AuthController {
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
-
 }

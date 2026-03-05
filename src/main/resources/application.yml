@@ -21,9 +21,15 @@ spring:
   session:
     store-type: redis
     timeout: 3000
-    redis:
-      namespace: spring:session
-      flush-mode: on_save
+    data:
+      redis:
+        namespace: spring:session
+        flush-mode: on_save
+
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+
 server:
   servlet:
     context-path: /api

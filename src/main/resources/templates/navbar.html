@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div th:fragment="toolbar">
+    <div class="toolbar">
+        <div class="logo">CloudRepo</div>
+        <div class="profile-menu">
+            <div class="profile-name" th:text="${username}">Гость</div>
+            <div class="dropdown-content">
+                <button onclick="window.location.href='/settings'">Настройка</button>
+                <button onclick="window.location.href='/logout'">Выход</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

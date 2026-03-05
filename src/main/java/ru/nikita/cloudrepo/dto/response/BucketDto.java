@@ -5,8 +5,12 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.time.ZonedDateTime;
+
 @Getter
 @AllArgsConstructor
-public class UserResponseDto {
-    private final String username;
+public class BucketDto {
+    private String bucketName;
+    private ZonedDateTime creationDate;
+    private String bucketRegion;
 }
