@@ -22,9 +22,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -166,19 +168,6 @@ public class StorageService {
         }
     }
 
-    private byte[] readObject(String bucketName, String objectKey) {
-        try (InputStream stream = minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(objectKey)
-                        .build()
-        )) {
-            return stream.readAllBytes();
-        } catch (Exception exception) {
-            throw mapStorageException(exception);
-        }
-    }
-
     private void removeObject(String bucketName, String objectKey) {
         try {
             minioClient.removeObject(
@@ -274,43 +263,102 @@ public class StorageService {
 
     public byte[] downloadResource(Long userId, String objectName) {
         log.info("Downloading resource userId={} path={}", userId, objectName);
-        String validatedPath = objectName.endsWith("/")
+        boolean isDirectory = objectName.endsWith("/");
+        String validatedPath = isDirectory
                 ? validateDirectoryPath(objectName)
                 : validateResourcePath(objectName);
+        String bucketName = getBucketName(userId);
 
-        var bucketName = getBucketName(userId);
-
-        if (validatedPath.endsWith("/")) {
+        if (isDirectory) {
             if (!directoryExists(userId, validatedPath)) {
                 throw new NotFoundException("Resource not found");
             }
-            return zipDirectory(bucketName, validatedPath);
+            return zipResourceToBytes(bucketName, validatedPath, true);
         }
 
         statObject(userId, validatedPath);
-        return readObject(bucketName, validatedPath);
+        return zipResourceToBytes(bucketName, validatedPath, false);
     }
 
-    private byte[] zipDirectory(String bucketName, String path) {
+    private byte[] zipResourceToBytes(String bucketName, String path, boolean isDirectory) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zos = new ZipOutputStream(baos)) {
 
-            List<Item> objects = listObjects(bucketName, path, true);
+            if (!isDirectory) {
+                writeFileEntry(zos, bucketName, path, new ResourceData(path).getName());
+            } else {
+                String basePrefix = "/".equals(path) ? "" : path;
+                String rootFolder = "/".equals(path) ? "" : new ResourceData(path).getName();
+                List<Item> objects = listObjects(bucketName, basePrefix, true);
+                Set<String> addedEntries = new HashSet<>();
 
-            for (Item item : objects) {
-                if (item.isDir()) continue;
+                if (!rootFolder.isBlank()) {
+                    writeDirectoryEntry(zos, rootFolder);
+                    addedEntries.add(rootFolder + "/");
+                }
 
-                String relativeName = item.objectName().substring(path.length());
-                ZipEntry zipEntry = new ZipEntry(relativeName);
-                zos.putNextEntry(zipEntry);
-                zos.write(readObject(bucketName, item.objectName()));
-                zos.closeEntry();
+                for (Item item : objects) {
+                    String objectKey = item.objectName();
+                    if (objectKey.equals(basePrefix)) {
+                        continue;
+                    }
+
+                    String relativePath = "/".equals(path)
+                            ? objectKey
+                            : objectKey.substring(basePrefix.length());
+                    if (relativePath.startsWith("/")) {
+                        relativePath = relativePath.substring(1);
+                    }
+                    if (relativePath.isBlank()) {
+                        continue;
+                    }
+
+                    String entryName = toZipEntryName(rootFolder, relativePath);
+                    if (item.isDir() || objectKey.endsWith("/")) {
+                        String directoryEntry = entryName.endsWith("/") ? entryName : entryName + "/";
+                        if (addedEntries.add(directoryEntry)) {
+                            writeDirectoryEntry(zos, directoryEntry);
+                        }
+                        continue;
+                    }
+
+                    if (addedEntries.add(entryName)) {
+                        writeFileEntry(zos, bucketName, objectKey, entryName);
+                    }
+                }
             }
+
             zos.finish();
             return baos.toByteArray();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
+        } catch (Exception exception) {
+            throw mapStorageException(exception);
         }
+    }
+
+    private void writeFileEntry(ZipOutputStream zos, String bucketName, String objectKey, String entryName) throws Exception {
+        zos.putNextEntry(new ZipEntry(entryName));
+        try (InputStream stream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectKey)
+                        .build())) {
+            stream.transferTo(zos);
+        } finally {
+            zos.closeEntry();
+        }
+    }
+
+    private void writeDirectoryEntry(ZipOutputStream zos, String entryName) throws IOException {
+        String normalized = entryName.endsWith("/") ? entryName : entryName + "/";
+        zos.putNextEntry(new ZipEntry(normalized));
+        zos.closeEntry();
+    }
+
+    private String toZipEntryName(String rootFolder, String relativePath) {
+        if (rootFolder == null || rootFolder.isBlank()) {
+            return relativePath;
+        }
+        return rootFolder + "/" + relativePath;
     }
 
     @Transactional
@@ -380,7 +428,7 @@ public class StorageService {
         var bucketName = getBucketName(userId);
 
         Map<String, ObjectResponseDto> result = new LinkedHashMap<>();
-        List<Item> objects = listObjects(bucketName, "", true);
+        List<Item> objects = listObjects(bucketName, query, true);
 
         for (Item item : objects) {
             String objectName = item.objectName();
@@ -400,6 +448,35 @@ public class StorageService {
         }
 
         return new ArrayList<>(result.values());
+    }
+
+    public List<ObjectResponseDto> getDirectoryContent(Long userId, String path) {
+        String validatedPath = validateDirectoryPath(path);
+        if (!"/".equals(validatedPath) && !directoryExists(userId, validatedPath)) {
+            throw new NotFoundException("Resource not found");
+        }
+
+        String bucketName = getBucketName(userId);
+        String prefix = "/".equals(validatedPath) ? "" : validatedPath;
+        List<Item> objects = listObjects(bucketName, prefix, false);
+        List<ObjectResponseDto> result = new ArrayList<>();
+
+        for (Item item : objects) {
+            String objectName = item.objectName();
+            if (objectName.equals(prefix)) {
+                continue;
+            }
+
+            ResourceData resourceData = new ResourceData(objectName);
+            boolean isDirectory = item.isDir() || objectName.endsWith("/");
+            if (isDirectory) {
+                result.add(new DirectoryResponseDto(resourceData.getPathToFile(), resourceData.getName()));
+            } else {
+                result.add(new ResourceResponseDto(resourceData.getPathToFile(), resourceData.getName(), item.size()));
+            }
+        }
+
+        return result;
     }
 
     private void addParentDirectories(Long userId, String objectName, String query, Map<String, ObjectResponseDto> result) {

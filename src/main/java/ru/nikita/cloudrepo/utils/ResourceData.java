@@ -3,23 +3,41 @@ package ru.nikita.cloudrepo.utils;
 import lombok.AllArgsConstructor;
 import ru.nikita.cloudrepo.entity.ResourceType;
 
-import java.io.File;
-
-// TODO: переписать логику под парсинг строк, а то долго
-
 @AllArgsConstructor
 public class ResourceData {
-    private String resource;
+    private final String resource;
 
     public String getName() {
-        return new File(resource).getName();
+        String normalized = normalize(resource);
+        if ("/".equals(normalized)) {
+            return "root";
+        }
+
+        String value = normalized.endsWith("/") && normalized.length() > 1
+                ? normalized.substring(0, normalized.length() - 1)
+                : normalized;
+        int delimiterIndex = value.lastIndexOf('/');
+        return delimiterIndex < 0 ? value : value.substring(delimiterIndex + 1);
     }
 
     public String getPathToFile() {
-        return new File(resource).getParent().replace("\\", "/") + "/";
+        String normalized = normalize(resource);
+        if ("/".equals(normalized)) {
+            return "/";
+        }
+
+        String value = normalized.endsWith("/") && normalized.length() > 1
+                ? normalized.substring(0, normalized.length() - 1)
+                : normalized;
+        int delimiterIndex = value.lastIndexOf('/');
+        return delimiterIndex < 0 ? "/" : value.substring(0, delimiterIndex + 1);
     }
 
     public ResourceType getType() {
-        return resource.endsWith("/") ? ResourceType.DIRECTORY : ResourceType.FILE;
+        return normalize(resource).endsWith("/") ? ResourceType.DIRECTORY : ResourceType.FILE;
+    }
+
+    private String normalize(String value) {
+        return value.replace('\\', '/');
     }
 }

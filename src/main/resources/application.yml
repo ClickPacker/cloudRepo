@@ -1,10 +1,6 @@
 spring:
   application:
     name: cloudRepo
-  security:
-    user:
-      name: user
-      password: 1234
   datasource:
     url: jdbc:postgresql://localhost:5432/cloud_repo
     username: postgres
@@ -19,7 +15,6 @@ spring:
       host: localhost
       port: 6380
   session:
-    store-type: redis
     timeout: 3000
     data:
       redis:
@@ -29,7 +24,12 @@ spring:
   thymeleaf:
     cache: false
     encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 server:
   servlet:
     context-path: /api
+

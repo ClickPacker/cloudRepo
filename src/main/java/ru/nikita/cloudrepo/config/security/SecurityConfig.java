@@ -35,21 +35,22 @@ public class SecurityConfig {
                 auths -> auths
                         .requestMatchers(
                                 "/auth/**",
-                                "/home",
+                                "/",
                                 "/css/**",
                                 "/js/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
-                        ).hasRole("ROLE_ADMIN")
+//                        ).hasRole("ADMIN")
+                        ).permitAll()
                         .anyRequest().authenticated()
         ).formLogin(form -> form
                         .loginPage("/auth/sign-in").permitAll()
                         .usernameParameter("username")
                         .passwordParameter("password")
                         .loginProcessingUrl("/auth/process-sign-in")
-                        .defaultSuccessUrl("/home", true)
+                        .defaultSuccessUrl("/", true)
         ).logout(form -> form.permitAll()
                         .logoutUrl("/auth/sign-out")
                         .logoutSuccessUrl("/auth/sign-in")
@@ -70,7 +71,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         return config.getAuthenticationManager();
     }
 }

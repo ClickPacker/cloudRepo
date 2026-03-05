@@ -9,7 +9,7 @@ import ru.nikita.cloudrepo.config.security.AuthUserDetails;
 
 @Controller
 public class HomeController {
-    @GetMapping("home")
+    @GetMapping
     private String homeHandler(@AuthenticationPrincipal AuthUserDetails details, Model model) {
         model.addAttribute("username", details.getUsername());
         return "home";

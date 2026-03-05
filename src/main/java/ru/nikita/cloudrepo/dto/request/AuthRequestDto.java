@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserRequestDto {
+public class AuthRequestDto {
     @NotBlank(message = "Username is required")
     @Size(min = 5, max = 25, message = "Username should be between 5 and 25 symbols")
     private String username;

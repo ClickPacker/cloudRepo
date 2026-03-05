@@ -7,8 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.nikita.cloudrepo.dto.request.UserRequestDto;
-import ru.nikita.cloudrepo.dto.response.UserResponseDto;
+import ru.nikita.cloudrepo.dto.request.AuthRequestDto;
+import ru.nikita.cloudrepo.dto.response.AuthResponseDto;
 import ru.nikita.cloudrepo.entity.Role;
 import ru.nikita.cloudrepo.exception.ConflictException;
 import ru.nikita.cloudrepo.repository.UserRepository;
@@ -41,16 +41,16 @@ class AuthServiceTest {
 
     @Test
     void signUpBuildsUserAndReturnsMappedResponse() {
-        UserRequestDto request = new UserRequestDto();
+        AuthRequestDto request = new AuthRequestDto();
         request.setUsername("user_1");
         request.setPassword("password123");
-        UserResponseDto expected = new UserResponseDto("user_1");
+        AuthResponseDto expected = new AuthResponseDto("user_1");
 
         when(userRepository.findUserByUsername("user_1")).thenReturn(java.util.Optional.empty());
         when(encoder.encode("password123")).thenReturn("encoded-password");
         when(mappingService.toResponseDto(any(User.class))).thenReturn(expected);
 
-        UserResponseDto actual = authService.signUp(request);
+        AuthResponseDto actual = authService.signUp(request);
 
         assertSame(expected, actual);
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
@@ -58,13 +58,13 @@ class AuthServiceTest {
         User createdUser = captor.getValue();
         assertEquals("user_1", createdUser.getUsername());
         assertEquals("encoded-password", createdUser.getPassword());
-        assertEquals(Role.USER, createdUser.getRole());
+        assertEquals(Role.ROLE_USER, createdUser.getRole());
         verify(userRepository).save(any(User.class));
     }
 
     @Test
     void signUpThrowsConflictWhenUsernameAlreadyExists() {
-        UserRequestDto request = new UserRequestDto();
+        AuthRequestDto request = new AuthRequestDto();
         request.setUsername("user_1");
         request.setPassword("password123");
         User existing = new User();

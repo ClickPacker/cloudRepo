@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.nikita.cloudrepo.dto.request.UserRequestDto;
-import ru.nikita.cloudrepo.dto.response.UserResponseDto;
+import ru.nikita.cloudrepo.dto.request.AuthRequestDto;
+import ru.nikita.cloudrepo.dto.response.AuthResponseDto;
 import ru.nikita.cloudrepo.entity.Role;
 import ru.nikita.cloudrepo.exception.ConflictException;
 import ru.nikita.cloudrepo.repository.UserRepository;
@@ -23,17 +23,17 @@ public class AuthService {
     private final PasswordEncoder encoder;
 
     @Transactional
-    public UserResponseDto signUp(UserRequestDto userRequestDto) {
-        if (userRepository.findUserByUsername(userRequestDto.getUsername()).isPresent()) {
-            log.warn("Sign-up conflict for username={}", userRequestDto.getUsername());
+    public AuthResponseDto signUp(AuthRequestDto authRequestDto) {
+        if (userRepository.findUserByUsername(authRequestDto.getUsername()).isPresent()) {
+            log.warn("Sign-up conflict for username={}", authRequestDto.getUsername());
             throw new ConflictException("User already exists");
         }
 
-        log.info("Sign-up requested for username={}", userRequestDto.getUsername());
+        log.info("Sign-up requested for username={}", authRequestDto.getUsername());
         User user = new User(
-                userRequestDto.getUsername(),
-                encoder.encode(userRequestDto.getPassword()),
-                Role.USER);
+                authRequestDto.getUsername(),
+                encoder.encode(authRequestDto.getPassword()),
+                Role.ROLE_USER);
         userRepository.save(user);
         storageService.createBucket(user.getId());
         log.info("Sign-up completed for userId={}", user.getId());

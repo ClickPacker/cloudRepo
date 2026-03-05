@@ -16,4 +16,10 @@ class FileDataTest {
         ResourceData resourceData = new ResourceData("folder1\\folder2\\file.txt");
         assertEquals("folder1/folder2/", resourceData.getPathToFile());
     }
+
+    @Test
+    void returnsRootPathForTopLevelDirectory() {
+        ResourceData resourceData = new ResourceData("prikoli/");
+        assertEquals("/", resourceData.getPathToFile());
+    }
 }

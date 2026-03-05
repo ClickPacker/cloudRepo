@@ -13,6 +13,7 @@ import ru.nikita.cloudrepo.utils.validate.IsPath;
 
 import java.util.List;
 
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("directory")
@@ -21,16 +22,16 @@ public class DirectoryController {
     private final StorageService storageService;
 
     @GetMapping
-    private ResponseEntity<List<ObjectResponseDto>> getDirectoryHandler(
+    public ResponseEntity<List<ObjectResponseDto>> getDirectoryHandler(
             @AuthenticationPrincipal AuthUserDetails details,
             @IsPath @RequestParam String path){
-        var body = storageService.search(details.getId(), path);
+        var body = storageService.getDirectoryContent(details.getId(), path);
         return ResponseEntity
                 .ok(body);
     }
 
     @PostMapping
-    private ResponseEntity<ObjectResponseDto> createDirectoryHandler(
+    public ResponseEntity<ObjectResponseDto> createDirectoryHandler(
             @AuthenticationPrincipal AuthUserDetails details,
             @IsPath @RequestParam String path) {
         storageService.createDirectory(details.getId(), path);

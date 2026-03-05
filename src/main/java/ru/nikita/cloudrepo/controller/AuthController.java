@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ru.nikita.cloudrepo.dto.request.UserRequestDto;
-import ru.nikita.cloudrepo.dto.response.UserResponseDto;
+import ru.nikita.cloudrepo.dto.request.AuthRequestDto;
+import ru.nikita.cloudrepo.dto.response.AuthResponseDto;
 import ru.nikita.cloudrepo.service.AuthService;
 
 import java.util.Map;
@@ -31,8 +31,8 @@ public class AuthController {
     }
 
     @PostMapping("process-sign-up")
-    private ResponseEntity<UserResponseDto> processSignUpHandler(@Valid @ModelAttribute("userRequestDto") UserRequestDto request) {
-        UserResponseDto responseDto = authService.signUp(request);
+    private ResponseEntity<AuthResponseDto> processSignUpHandler(@Valid @ModelAttribute("userRequestDto") AuthRequestDto request) {
+        AuthResponseDto responseDto = authService.signUp(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(responseDto);

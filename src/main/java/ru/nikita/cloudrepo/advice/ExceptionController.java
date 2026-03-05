@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.nikita.cloudrepo.exception.BadRequestException;
 import ru.nikita.cloudrepo.exception.ConflictException;
@@ -26,7 +27,7 @@ public class ExceptionController {
     @ExceptionHandler({UserDoesNotCreatedException.class, IncorrectPasswordException.class, UserNotFoundException.class})
     private ResponseEntity<ExceptionDto> handleUnauthorized(RuntimeException exception) {
         log.warn("Unauthorized request: {}", exception.getMessage());
-        return er   ror(HttpStatus.UNAUTHORIZED, exception.getMessage());
+        return error(HttpStatus.UNAUTHORIZED, exception.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)
@@ -71,6 +72,11 @@ public class ExceptionController {
     })
     private ResponseEntity<ExceptionDto> handleValidationException(Exception exception) {
         return error(HttpStatus.BAD_REQUEST, resolveValidationMessage(exception));
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    private ResponseEntity<ExceptionDto> handleMethodValidationException(HandlerMethodValidationException exception) {
+        return error(HttpStatus.BAD_REQUEST, "Invalid path");
     }
 
     @ExceptionHandler(Exception.class)

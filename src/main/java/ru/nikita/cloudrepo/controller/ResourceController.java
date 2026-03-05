@@ -32,7 +32,7 @@ public class ResourceController {
     private final StorageService storageService;
 
     @GetMapping
-    private ResponseEntity<ObjectResponseDto> getResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
+    public ResponseEntity<ObjectResponseDto> getResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
         var body = storageService.getResource(details.getId(), path);
         return ResponseEntity
                 .ok()
@@ -41,7 +41,7 @@ public class ResourceController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    private ResponseEntity<ObjectResponseDto> uploadResource(@AuthenticationPrincipal AuthUserDetails details, @IsPath @RequestParam String path, @RequestPart("file") MultipartFile file){
+    public ResponseEntity<ObjectResponseDto> uploadResource(@AuthenticationPrincipal AuthUserDetails details, @IsPath @RequestParam String path, @RequestPart("file") MultipartFile file){
         storageService.upload(details.getId(), path, file);
         var body = storageService.getResource(details.getId(), path + file.getOriginalFilename());
         return ResponseEntity
@@ -51,7 +51,7 @@ public class ResourceController {
     }
 
     @GetMapping("search")
-    private ResponseEntity<List<ObjectResponseDto>> searchResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String query){
+    public ResponseEntity<List<ObjectResponseDto>> searchResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String query){
         var results = storageService.search(details.getId(), query);
         return ResponseEntity
                 .ok()
@@ -60,7 +60,7 @@ public class ResourceController {
     }
 
     @DeleteMapping
-    private ResponseEntity<HttpStatus> deleteResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
+    public ResponseEntity<HttpStatus> deleteResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
         storageService.deleteResource(details.getId(), path);
         return ResponseEntity
                 .noContent()
@@ -68,11 +68,11 @@ public class ResourceController {
     }
 
     @GetMapping("download")
-    private ResponseEntity<byte[]> downloadResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
+    public ResponseEntity<byte[]> downloadResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
         byte[] zipData = storageService.downloadResource(details.getId(), path);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentType(MediaType.parseMediaType("application/zip"));
         headers.setContentDisposition(ContentDisposition.builder("attachment")
                 .filename(new ResourceData(path).getName() + ".zip")
                 .build());
@@ -85,7 +85,7 @@ public class ResourceController {
     }
 
     @GetMapping("move")
-    private ResponseEntity<ObjectResponseDto> moveResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String from, @RequestParam String to){
+    public ResponseEntity<ObjectResponseDto> moveResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String from, @RequestParam String to){
         storageService.moveResource(details.getId(), from, to);
         var body = storageService.getResource(details.getId(), to);
         return ResponseEntity
