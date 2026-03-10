@@ -2,9 +2,9 @@ spring:
   application:
     name: cloudRepo
   datasource:
-    url: jdbc:postgresql://localhost:5432/cloud_repo
-    username: postgres
-    password: 1627
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:cloud_repo}
+    username: ${DB_USERNAME:${POSTGRES_USER:postgres}}
+    password: ${DB_PASSWORD:${POSTGRES_PASSWORD:1627}}
     driver-class-name: org.postgresql.Driver
   jpa:
     database: postgresql
@@ -12,8 +12,8 @@ spring:
       ddl-auto: update
   data:
     redis:
-      host: localhost
-      port: 6380
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
   session:
     timeout: 3000
     data:
@@ -30,6 +30,9 @@ spring:
       max-request-size: 10MB
 
 server:
+  forward-headers-strategy: framework
+  tomcat:
+    use-relative-redirects: true
   servlet:
     context-path: /api
 

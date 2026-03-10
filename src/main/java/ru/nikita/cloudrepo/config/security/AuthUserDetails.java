@@ -2,9 +2,11 @@ package ru.nikita.cloudrepo.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.nikita.cloudrepo.config.repository.MinioConfig;
 import ru.nikita.cloudrepo.repository.entity.User;
 
 import java.io.Serializable;
@@ -22,8 +24,9 @@ public class AuthUserDetails implements UserDetails, Serializable {
         return List.of(new SimpleGrantedAuthority(user.getRole().toString()));
     }
 
-    public Long getId() {
-        return user.getId();
+    public String getUserBucket() {
+        // TODO: интегрировать с MinioConfig
+        return "user-%d-files".formatted(user.getId());
     }
 
     @Override

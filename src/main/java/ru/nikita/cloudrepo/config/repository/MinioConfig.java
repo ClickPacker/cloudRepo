@@ -31,7 +31,7 @@ public class MinioConfig {
     public MinioClient getMinioClient() {
         return MinioClient
                 .builder()
-                .endpoint(minioHostname, minioPort, Boolean.getBoolean(minioSecure))
+                .endpoint(minioHostname, minioPort, Boolean.parseBoolean(minioSecure))
                 .credentials(minioUsername, minioPassword)
                 .build();
     }

@@ -1,27 +1,21 @@
 package ru.nikita.cloudrepo.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.nikita.cloudrepo.config.security.AuthUserDetails;
-import ru.nikita.cloudrepo.dto.response.ObjectResponseDto;
-import ru.nikita.cloudrepo.service.StorageService;
+import ru.nikita.cloudrepo.dto.response.ResourceResponseDto;
+import ru.nikita.cloudrepo.entity.DirectoryResource;
+import ru.nikita.cloudrepo.entity.Resource;
+import ru.nikita.cloudrepo.service.impl.StorageService;
+import ru.nikita.cloudrepo.service.ResourceUtils;
 import ru.nikita.cloudrepo.utils.ResourceData;
 import ru.nikita.cloudrepo.utils.validate.IsPath;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -32,36 +26,37 @@ public class ResourceController {
     private final StorageService storageService;
 
     @GetMapping
-    public ResponseEntity<ObjectResponseDto> getResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
-        var body = storageService.getResource(details.getId(), path);
+    public ResponseEntity<ResourceResponseDto> getResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path) {
+        var body = storageService.getResource(ResourceUtils.parse(details.getUserBucket(), path));
         return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body);
+                .ok(body);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ObjectResponseDto> uploadResource(@AuthenticationPrincipal AuthUserDetails details, @IsPath @RequestParam String path, @RequestPart("file") MultipartFile file){
-        storageService.upload(details.getId(), path, file);
-        var body = storageService.getResource(details.getId(), path + file.getOriginalFilename());
+    public ResponseEntity<ResourceResponseDto> uploadResource(@AuthenticationPrincipal AuthUserDetails details, @IsPath @RequestParam String path, @RequestPart("file") MultipartFile file){
+        DirectoryResource directory = ResourceUtils.parseDirectory(details.getUserBucket(), path);
+        storageService.uploadResource(directory, file);
+
+        String createdPath = directory.isRootDirectory()
+                ? file.getOriginalFilename()
+                : directory.getResourcePath() + file.getOriginalFilename();
+
+        var body = storageService.getResource(ResourceUtils.parse(details.getUserBucket(), createdPath));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(body);
     }
 
     @GetMapping("search")
-    public ResponseEntity<List<ObjectResponseDto>> searchResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String query){
-        var results = storageService.search(details.getId(), query);
+    public ResponseEntity<List<ResourceResponseDto>> searchResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String query){
+        var results = storageService.searchResources(details.getUserBucket(), query);
         return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(results);
+                .ok(results);
     }
 
     @DeleteMapping
     public ResponseEntity<HttpStatus> deleteResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
-        storageService.deleteResource(details.getId(), path);
+        storageService.deleteResource(ResourceUtils.parse(details.getUserBucket(), path));
         return ResponseEntity
                 .noContent()
                 .build();
@@ -69,29 +64,28 @@ public class ResourceController {
 
     @GetMapping("download")
     public ResponseEntity<byte[]> downloadResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String path){
-        byte[] zipData = storageService.downloadResource(details.getId(), path);
+        byte[] zipData = storageService.downloadResource(ResourceUtils.parse(details.getUserBucket(), path));
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType("application/zip"));
         headers.setContentDisposition(ContentDisposition.builder("attachment")
-                .filename(new ResourceData(path).getName() + ".zip")
+                .filename(new ResourceData(path).getName() + ".zip", StandardCharsets.UTF_8)
                 .build());
 
         return ResponseEntity
                 .ok()
+                .contentType(MediaType.parseMediaType("application/zip"))
                 .headers(headers)
+                .contentLength(zipData.length)
                 .body(zipData);
-
     }
 
     @GetMapping("move")
-    public ResponseEntity<ObjectResponseDto> moveResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String from, @RequestParam String to){
-        storageService.moveResource(details.getId(), from, to);
-        var body = storageService.getResource(details.getId(), to);
+    public ResponseEntity<ResourceResponseDto> moveResource(@AuthenticationPrincipal AuthUserDetails details, @RequestParam String from, @RequestParam String to){
+        Resource source = ResourceUtils.parse(details.getUserBucket(), from);
+        Resource destination = ResourceUtils.parse(details.getUserBucket(), to);
+        var body = storageService.moveResource(source, destination);
         return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body);
+                .ok(body);
     }
 
 }

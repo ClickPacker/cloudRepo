@@ -1,18 +1,35 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head></head>
 <body>
-<div th:fragment="toolbar">
-    <div class="toolbar">
-        <div class="logo">CloudRepo</div>
-        <div class="profile-menu">
-            <div class="profile-name" th:text="${username}">Гость</div>
-            <div class="dropdown-content">
-                <button onclick="window.location.href='/settings'">Настройка</button>
-                <button onclick="window.location.href='/logout'">Выход</button>
+<nav class="navbar navbar-expand-lg navbar-app" th:fragment="toolbar">
+    <div class="container-fluid px-3 px-md-4">
+        <a class="navbar-brand" th:href="@{/}">
+            <img th:src="@{/assets/icon-BA2QZDzm.png}" alt="CloudRepo">
+            <span>CloudRepo</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'home'} ? ' active'" th:href="@{/}">Файлы</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'settings'} ? ' active'" th:href="@{/settings}">Настройки</a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-user" th:text="${username}">guest</span>
+                <form th:action="@{/auth/sign-out}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Выйти</button>
+                </form>
             </div>
         </div>
     </div>
-</div>
+</nav>
 </body>
 </html>

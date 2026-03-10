@@ -1,4 +1,4 @@
-package ru.nikita.cloudrepo.entity;
+package ru.nikita.cloudrepo.entity.enums;
 
 public enum ResourceType {
     FILE,

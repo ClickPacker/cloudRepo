@@ -1,6 +1,19 @@
-FROM eclipse-temurin:17
+FROM maven:3.9.11-eclipse-temurin-17 AS build
+WORKDIR /app
 
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
+COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
+RUN chmod +x mvnw
+RUN ./mvnw -DskipTests dependency:go-offline
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+COPY src src
+RUN ./mvnw -DskipTests package
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+
+ENTRYPOINT ["java","-jar","/app/app.jar"]

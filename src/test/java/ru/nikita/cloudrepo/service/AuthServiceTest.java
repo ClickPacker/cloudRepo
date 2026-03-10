@@ -9,10 +9,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.nikita.cloudrepo.dto.request.AuthRequestDto;
 import ru.nikita.cloudrepo.dto.response.AuthResponseDto;
-import ru.nikita.cloudrepo.entity.Role;
+import ru.nikita.cloudrepo.entity.enums.Role;
 import ru.nikita.cloudrepo.exception.ConflictException;
 import ru.nikita.cloudrepo.repository.UserRepository;
 import ru.nikita.cloudrepo.repository.entity.User;
+import ru.nikita.cloudrepo.service.impl.StorageService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -25,13 +26,7 @@ import static org.mockito.Mockito.when;
 class AuthServiceTest {
 
     @Mock
-    private StorageService storageService;
-
-    @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private MappingService mappingService;
 
     @Mock
     private PasswordEncoder encoder;
@@ -48,13 +43,11 @@ class AuthServiceTest {
 
         when(userRepository.findUserByUsername("user_1")).thenReturn(java.util.Optional.empty());
         when(encoder.encode("password123")).thenReturn("encoded-password");
-        when(mappingService.toResponseDto(any(User.class))).thenReturn(expected);
 
         AuthResponseDto actual = authService.signUp(request);
 
         assertSame(expected, actual);
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-        verify(mappingService).toResponseDto(captor.capture());
         User createdUser = captor.getValue();
         assertEquals("user_1", createdUser.getUsername());
         assertEquals("encoded-password", createdUser.getPassword());

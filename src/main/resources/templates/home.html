@@ -2,129 +2,147 @@
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Главная страница</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-
-        .toolbar {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .profile-menu {
-            position: relative;
-            display: inline-block;
-        }
-
-        .profile-name {
-            cursor: default;
-            padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
-            border-radius: 4px;
-            font-size: 16px;
-            user-select: none;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            border-radius: 4px;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .dropdown-content button {
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            font-size: 16px;
-            cursor: pointer;
-            color: #333;
-            transition: background-color 0.2s;
-        }
-
-        .dropdown-content button:hover {
-            background-color: #f1f1f1;
-        }
-
-        .profile-menu:hover .dropdown-content {
-            display: block;
-        }
-
-        .content {
-            padding: 30px;
-            text-align: center;
-            margin-top: 50px;
-        }
-
-        .login-form {
-            background-color: white;
-            padding: 30px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 300px;
-            margin: 0 auto;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        input[type="submit"] {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Файлы | CloudRepo</title>
+    <link rel="icon" th:href="@{/assets/icon-BA2QZDzm.png}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/assets/index-BdL5i7zc.css}">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-
 <div th:insert="~{navbar :: toolbar}"></div>
 
-<div class="content">
+<main id="storage-app" class="container-fluid app-page px-3 px-md-4" th:attr="data-current-path=${currentPath}">
+    <div class="asset-banner">
+        <div class="d-flex align-items-center">
+            <img th:src="@{/assets/icon-BA2QZDzm.png}" alt="CloudRepo">
+            <div>
+                <div class="page-title mb-0">Файловое хранилище</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button id="refresh-directory-button" type="button" class="btn btn-outline-secondary btn-sm">Обновить</button>
+            <button id="go-up-button" type="button" class="btn btn-outline-secondary btn-sm">На уровень выше</button>
+        </div>
+    </div>
 
+    <div class="card app-card mb-3">
+        <div class="card-header">Поиск</div>
+        <div class="card-body">
+            <form id="search-resource-form" class="row g-2 align-items-end">
+                <div class="col-md-11">
+                    <label class="form-label mb-1" for="search-query">Введите имя файла или папки</label>
+                    <input class="form-control" id="search-query" name="query" placeholder="Например: report" required>
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button class="btn btn-app text-white" type="submit">Найти</button>
+                </div>
+            </form>
+            <div class="d-flex justify-content-end mt-2">
+                <button id="clear-search-button" type="button" class="btn btn-outline-secondary btn-sm d-none">Очистить поиск</button>
+            </div>
+            <div id="search-empty" class="small text-muted mt-2 d-none">По вашему запросу ничего не найдено.</div>
+            <ul id="search-results" class="list-group mt-2 d-none"></ul>
+        </div>
+    </div>
+
+    <div class="card app-card storage-card">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>Содержимое директории</span>
+            <span id="current-path-badge" class="badge text-bg-light">/</span>
+        </div>
+        <div class="card-body">
+            <nav aria-label="Навигация по пути">
+                <ol id="path-breadcrumb" class="breadcrumb app-breadcrumb mb-3"></ol>
+            </nav>
+
+            <div id="directory-status" class="alert d-none mb-3" role="alert"></div>
+
+            <div class="directory-actions mb-3">
+                <button id="add-file-button" type="button" class="btn btn-app text-white">Добавить файл</button>
+                <button id="open-create-directory-modal" type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#create-directory-modal">Создать директорию</button>
+                <input id="upload-file-input" type="file" class="d-none">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 storage-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Имя</th>
+                        <th scope="col">Тип</th>
+                        <th scope="col" class="text-end">Размер</th>
+                        <th scope="col" class="text-end">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resource-list"></tbody>
+                </table>
+            </div>
+
+            <div id="empty-directory" class="empty-directory d-none">
+                Директория пуста.
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="modal fade" id="resource-details-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Детали ресурса</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div id="resource-modal-alert" class="alert d-none"></div>
+
+                <dl class="row mb-3">
+                    <dt class="col-sm-4">Имя</dt>
+                    <dd id="resource-detail-name" class="col-sm-8">-</dd>
+                    <dt class="col-sm-4">Путь</dt>
+                    <dd id="resource-detail-path" class="col-sm-8 modal-resource-path">-</dd>
+                    <dt class="col-sm-4">Тип</dt>
+                    <dd id="resource-detail-type" class="col-sm-8">-</dd>
+                    <dt class="col-sm-4">Размер</dt>
+                    <dd id="resource-detail-size" class="col-sm-8">-</dd>
+                </dl>
+
+                <div class="border-top pt-3">
+                    <label for="resource-move-target" class="form-label">Новый путь для перемещения</label>
+                    <input id="resource-move-target" class="form-control" placeholder="Например: archive/file.txt">
+                </div>
+            </div>
+            <div class="modal-footer d-flex flex-wrap gap-2">
+                <button id="resource-download-button" type="button" class="btn btn-outline-success">Скачать ZIP</button>
+                <button id="resource-delete-button" type="button" class="btn btn-danger">Удалить</button>
+                <button id="resource-move-button" type="button" class="btn btn-app text-white">Переместить ресурс</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div class="modal fade" id="create-directory-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Создать директорию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div id="create-directory-alert" class="alert d-none"></div>
+                <label for="new-directory-name" class="form-label">Название папки</label>
+                <input id="new-directory-name" class="form-control" placeholder="new-folder" maxlength="200">
+            </div>
+            <div class="modal-footer">
+                <button id="create-directory-confirm" type="button" class="btn btn-app text-white">Создать</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

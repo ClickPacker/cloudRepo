@@ -16,7 +16,6 @@ import java.util.Map;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("auth")
-@Slf4j
 public class AuthController {
     private final AuthService authService;
 
