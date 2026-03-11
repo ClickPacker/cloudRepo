@@ -28,4 +28,22 @@ class ResourceUtilsTest {
     void rejectsFileLikePath() {
         assertFalse(validator.isValid("folder/file.txt", null));
     }
+
+    @Test
+    void rejectsBlankAndNullPath() {
+        assertFalse(validator.isValid("", null));
+        assertFalse(validator.isValid(" ", null));
+        assertFalse(validator.isValid(null, null));
+    }
+
+    @Test
+    void rejectsTraversalAndAbsoluteDirectoryPath() {
+        assertFalse(validator.isValid("folder/../secret/", null));
+        assertFalse(validator.isValid("/folder/subfolder/", null));
+    }
+
+    @Test
+    void acceptsWindowsLikeDirectoryPath() {
+        assertTrue(validator.isValid("folder\\subfolder\\", null));
+    }
 }

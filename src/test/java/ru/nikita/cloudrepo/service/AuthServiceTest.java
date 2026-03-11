@@ -16,10 +16,10 @@ import ru.nikita.cloudrepo.repository.entity.User;
 import ru.nikita.cloudrepo.service.impl.StorageService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,6 +27,9 @@ class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private StorageService storageService;
 
     @Mock
     private PasswordEncoder encoder;
@@ -43,16 +46,24 @@ class AuthServiceTest {
 
         when(userRepository.findUserByUsername("user_1")).thenReturn(java.util.Optional.empty());
         when(encoder.encode("password123")).thenReturn("encoded-password");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(101L);
+            return user;
+        });
 
         AuthResponseDto actual = authService.signUp(request);
 
-        assertSame(expected, actual);
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-        User createdUser = captor.getValue();
-        assertEquals("user_1", createdUser.getUsername());
-        assertEquals("encoded-password", createdUser.getPassword());
-        assertEquals(Role.ROLE_USER, createdUser.getRole());
-        verify(userRepository).save(any(User.class));
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        verify(storageService).getBucketIfExists("user-101-files");
+
+        User savedUser = userCaptor.getValue();
+        assertEquals("user_1", savedUser.getUsername());
+        assertEquals("encoded-password", savedUser.getPassword());
+        assertEquals(Role.ROLE_USER, savedUser.getRole());
+
+        assertEquals(expected.getUsername(), actual.getUsername());
     }
 
     @Test
@@ -66,5 +77,6 @@ class AuthServiceTest {
         when(userRepository.findUserByUsername("user_1")).thenReturn(java.util.Optional.of(existing));
 
         assertThrows(ConflictException.class, () -> authService.signUp(request));
+        verifyNoInteractions(storageService, encoder);
     }
 }
