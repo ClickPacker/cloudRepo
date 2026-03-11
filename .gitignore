@@ -35,6 +35,4 @@ build/
 .env
 minio
 redisdata
-init
-nginx
 cookies*.txt
