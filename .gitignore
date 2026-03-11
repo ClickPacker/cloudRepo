@@ -37,3 +37,4 @@ minio
 redisdata
 init
 nginx
+cookies*.txt

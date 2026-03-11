@@ -530,16 +530,22 @@
         const loadMeButton = document.getElementById("load-me-button");
         const changePasswordForm = document.getElementById("change-password-form");
 
-        loadMeButton.addEventListener("click", function () {
-            request(apiRoot + "/user/me", { method: "GET" })
-                .then(function (payload) {
-                    profileUsername.textContent = payload.username || "-";
-                    showAlert(statusNode, "Данные профиля обновлены", "success");
-                })
-                .catch(function (error) {
-                    showAlert(statusNode, error.message, "danger");
-                });
-        });
+        if (loadMeButton && profileUsername) {
+            loadMeButton.addEventListener("click", function () {
+                request(apiRoot + "/user/me", { method: "GET" })
+                    .then(function (payload) {
+                        profileUsername.textContent = payload.username || "-";
+                        showAlert(statusNode, "Данные профиля обновлены", "success");
+                    })
+                    .catch(function (error) {
+                        showAlert(statusNode, error.message, "danger");
+                    });
+            });
+        }
+
+        if (!changePasswordForm) {
+            return;
+        }
 
         changePasswordForm.addEventListener("submit", function (event) {
             event.preventDefault();
