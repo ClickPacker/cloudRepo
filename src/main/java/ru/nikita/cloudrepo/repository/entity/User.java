@@ -4,16 +4,19 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import ru.nikita.cloudrepo.entity.Role;
+import ru.nikita.cloudrepo.entity.enums.Role;
+
+import java.io.Serializable;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "\"user\"")
 @NoArgsConstructor
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

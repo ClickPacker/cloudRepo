@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Вход | CloudRepo</title>
+    <link rel="icon" th:href="@{/assets/icon-BA2QZDzm.png}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/assets/index-BdL5i7zc.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<div class="auth-shell">
+    <div class="card auth-card">
+        <div class="card-body">
+            <div class="brand-block">
+                <img th:src="@{/assets/icon-BA2QZDzm.png}" alt="CloudRepo">
+                <h1>CloudRepo</h1>
+            </div>
+
+            <h2 class="h5 mb-3">Вход в систему</h2>
+
+            <div class="alert alert-danger" th:if="${param.error}">
+                Неверный логин или пароль.
+            </div>
+
+            <form th:action="@{/auth/process-sign-in}" method="post" class="d-grid gap-3">
+                <div>
+                    <label for="username" class="form-label">Имя пользователя</label>
+                    <input type="text" id="username" name="username" class="form-control" minlength="5" maxlength="25" required>
+                </div>
+                <div>
+                    <label for="password" class="form-label">Пароль</label>
+                    <input type="password" id="password" name="password" class="form-control" minlength="8" maxlength="50" required>
+                </div>
+                <button type="submit" class="btn btn-app text-white w-100">Войти</button>
+            </form>
+
+            <div class="helper-link">
+                Нет аккаунта? <a th:href="@{/auth/sign-up}">Зарегистрироваться</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

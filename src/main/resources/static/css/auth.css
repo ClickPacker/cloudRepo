@@ -1,45 +1,68 @@
+﻿:root {
+    --app-primary: #4caf50;
+    --app-primary-dark: #3f9142;
+    --app-bg: #f5f5f5;
+    --app-text: #333;
+    --app-border: #dfe3e6;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at top left, rgba(76, 175, 80, 0.16), transparent 40%), var(--app-bg);
+    color: var(--app-text);
+    min-height: 100vh;
+}
+
+.auth-shell {
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card .card-body {
+    padding: 2rem;
+}
+
+.brand-block {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.brand-block img {
+    width: 36px;
+    height: 36px;
+}
+
+.auth-card h1 {
+    font-size: 1.35rem;
     margin: 0;
-    background-color: #f5f5f5;
 }
-.login-form {
-    background-color: white;
-    padding: 30px;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    width: 300px;
+
+.btn-app {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
 }
-.form-group {
-    margin-bottom: 15px;
+
+.btn-app:hover,
+.btn-app:focus {
+    background-color: var(--app-primary-dark);
+    border-color: var(--app-primary-dark);
 }
-label {
-    display: block;
-    margin-bottom: 5px;
-    color: #333;
-}
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-input[type="submit"] {
-    width: 100%;
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-input[type="submit"]:hover {
-    background-color: #45a049;
+
+.helper-link {
+    font-size: 0.95rem;
+    text-align: center;
+    margin-top: 1rem;
 }
